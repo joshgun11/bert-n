@@ -17,7 +17,7 @@ from model import BertClassifier
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--max_length', type=int, default=128, help='the input length for bert')
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--nb_epochs', type=int, default=2)
 parser.add_argument('--bert_lr', type=float, default=1e-4)
 parser.add_argument('--dataset', default='df', choices=['df'])
@@ -54,7 +54,7 @@ logger.addHandler(fh)
 logger.setLevel(logging.INFO)
 
 cpu = th.device('cpu')
-#gpu = th.device('cuda:0')
+gpu = th.device('cuda:0')
 
 logger.info('arguments:')
 logger.info(str(args))
@@ -117,9 +117,9 @@ scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[30], gamma=0.1)
 def train_step(engine, batch):
     global model, optimizer
     model.train()
-    model = model.to(cpu)
+    model = model.to(gpu)
     optimizer.zero_grad()
-    (input_ids, attention_mask, label) = [x.to(cpu) for x in batch]
+    (input_ids, attention_mask, label) = [x.to(gpu) for x in batch]
     optimizer.zero_grad()
     y_pred = model(input_ids, attention_mask)
     y_true = label.type(th.long)
@@ -141,8 +141,8 @@ def test_step(engine, batch):
     global model
     with th.no_grad():
         model.eval()
-        model = model.to(cpu)
-        (input_ids, attention_mask, label) = [x.to(cpu) for x in batch]
+        model = model.to(gpu)
+        (input_ids, attention_mask, label) = [x.to(gpu) for x in batch]
         optimizer.zero_grad()
         y_pred = model(input_ids, attention_mask)
         y_true = label
